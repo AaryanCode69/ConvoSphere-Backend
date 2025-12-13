@@ -13,8 +13,12 @@ import java.time.Instant;
 public class Member {
     private String userId;
     private GroupRoles role;
+
     private Instant joinedAt;
     private Instant leftAt;
-    private boolean isMuted;
+
+    @Builder.Default
+    private boolean isMuted = false;
+
     private Instant lastReadAt;
 }

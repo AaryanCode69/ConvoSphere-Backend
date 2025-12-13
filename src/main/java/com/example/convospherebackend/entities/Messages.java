@@ -1,5 +1,6 @@
 package com.example.convospherebackend.entities;
 
+import com.example.convospherebackend.enums.MessageType;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -19,13 +20,14 @@ public class Messages {
     @Id
     private String id;
 
-    @DocumentReference(lazy = true)
-    private Conversations conversationId;
 
-    @DocumentReference(lazy = true)
-    private User senderId;
+    private String conversationId;
+
+    private String senderId;
 
     private String content;
+
+    private MessageType messageType;
 
     @Builder.Default
     private String mediaUrl = null;
@@ -33,7 +35,6 @@ public class Messages {
     @CreatedDate
     private Instant createdAt;
 
-    @LastModifiedDate
     private Instant editedAt;
 
     @Builder.Default
