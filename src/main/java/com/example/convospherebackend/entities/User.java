@@ -30,9 +30,7 @@ public class User {
     @JsonIgnore
     private String hashedPassword;
 
-
     private String displayName;
-
 
     private String avatarUrl;
 

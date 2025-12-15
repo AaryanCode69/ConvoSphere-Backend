@@ -11,10 +11,13 @@ import java.time.Instant;
 @NoArgsConstructor
 @Builder
 public class Member {
+
     private String userId;
+
     private GroupRoles role;
 
     private Instant joinedAt;
+
     private Instant leftAt;
 
     @Builder.Default
