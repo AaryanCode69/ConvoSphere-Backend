@@ -1,8 +1,10 @@
 package com.example.convospherebackend.aspects;
 
 import com.example.convospherebackend.exception.EmailAlreadyExistsException;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -14,7 +16,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(
-                        new ApiResponse<>(
+                        ApiResponse.error(
                                 ApiError.builder()
                                         .code(HttpStatus.CONFLICT)
                                         .message("Email already exists")
@@ -23,4 +25,33 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleValidationException(MethodArgumentNotValidException exception){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ApiResponse.error(
+                                ApiError.builder()
+                                        .code(HttpStatus.BAD_REQUEST)
+                                        .message(exception.getMessage())
+                                        .build()
+                        )
+
+                );
+
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<?>> ExceptionHandler(JwtException exception){
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(
+                        ApiResponse.error(
+                                ApiError.builder()
+                                        .code(HttpStatus.UNAUTHORIZED)
+                                        .message(exception.getMessage())
+                                        .build()
+                        )
+                );
+    }
 }

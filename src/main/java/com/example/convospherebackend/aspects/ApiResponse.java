@@ -18,4 +18,13 @@ public class ApiResponse<T> {
         this.apiError = error;
     }
 
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(data);
+    }
+
+    public static ApiResponse<?> error(ApiError error) {
+        return new ApiResponse<>(error);
+    }
+
+
 }

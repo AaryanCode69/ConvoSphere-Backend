@@ -21,9 +21,9 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
 
     @Override
     public @Nullable Object beforeBodyWrite(@Nullable Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        if(body instanceof ApiResponse || body==null || body instanceof ResponseEntity<?>){
+        if(body instanceof ApiResponse || body==null || body instanceof ResponseEntity<?> || body instanceof String){
             return body;
         }
-        return new ApiResponse<>(body);
+        return ApiResponse.success(body);
     }
 }

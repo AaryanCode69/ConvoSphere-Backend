@@ -1,5 +1,7 @@
 package com.example.convospherebackend.controllers;
 
+import com.example.convospherebackend.dto.LoginDTO;
+import com.example.convospherebackend.dto.LoginResponseDTO;
 import com.example.convospherebackend.dto.SignUpDTO;
 import com.example.convospherebackend.services.LoginandSignUpService;
 import jakarta.validation.Valid;
@@ -21,9 +23,14 @@ public class UserSignupController {
     private final LoginandSignUpService loginandSignUpService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> registrationController(@Valid @RequestBody SignUpDTO signUpDTO){
+    public ResponseEntity<Void> registration(@Valid @RequestBody SignUpDTO signUpDTO){
         loginandSignUpService.userSignUp(signUpDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body("User Saved Succesfully");
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/login")
+    public LoginResponseDTO loginUser(@Valid @RequestBody LoginDTO loginDTO){
+        return loginandSignUpService.userLogin(loginDTO);
     }
 
 }
