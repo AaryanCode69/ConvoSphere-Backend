@@ -5,14 +5,16 @@ import com.example.convospherebackend.dto.LoginDTO;
 import com.example.convospherebackend.dto.LoginResponseDTO;
 import com.example.convospherebackend.dto.SignUpDTO;
 import com.example.convospherebackend.entities.User;
+import com.example.convospherebackend.entities.UserAuthProvider;
+import com.example.convospherebackend.enums.LoginAuthProvider;
 import com.example.convospherebackend.exception.EmailAlreadyExistsException;
 import com.example.convospherebackend.exception.EmailNotFoundException;
 import com.example.convospherebackend.exception.InvalidCredentialException;
+import com.example.convospherebackend.repository.UserAuthRepository;
 import com.example.convospherebackend.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,8 @@ public class LoginandSignUpService {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final UserAuthRepository userAuthRepository;
 
     private final JwtService jwtService;
     
@@ -45,11 +49,24 @@ public class LoginandSignUpService {
                 .build();
 
         try {
-            userRepository.save(user);
+            user = userRepository.save(user);
         } catch (DuplicateKeyException ex) {
             throw new EmailAlreadyExistsException("Email already registered");
         }
-        log.info("User Registered with Email: {}",email);
+
+            UserAuthProvider userAuthProvider = UserAuthProvider
+                    .builder()
+                    .userId(user.getId())
+                    .provider(LoginAuthProvider.LOCAL)
+                    .providerUserId(email)
+                    .providerEmail(email)
+                    .build();
+            try {
+                userAuthRepository.save(userAuthProvider);
+            } catch (DuplicateKeyException ex) {
+                throw new EmailAlreadyExistsException("Authentication method already exists");
+            }
+
     }
 
     @Transactional
@@ -59,6 +76,11 @@ public class LoginandSignUpService {
         if(user==null){
             throw new EmailNotFoundException("Email Not Found, Please Login Using a Valid Email Address");
         }
+        if (!userAuthRepository.existsByProviderAndProviderUserId(
+                LoginAuthProvider.LOCAL, email)) {
+            throw new InvalidCredentialException("Invalid login method");
+        }
+
         if(!passwordEncoder.matches(loginDTO.getPassword(), user.getHashedPassword())){
             throw new InvalidCredentialException("Invalid Credentails, Please Try Again Using Valid Credentials");
         }
