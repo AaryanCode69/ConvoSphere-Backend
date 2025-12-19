@@ -1,15 +1,20 @@
 package com.example.convospherebackend.aspects;
 
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Aspect
 @Slf4j
 @Component
-public class LoggingAspect {
+public class ServiceAspects {
 
      @Around("com.example.convospherebackend.aspects.CommonPointCuts.serviceLayerExecution()")
      public Object logMethodExecution(ProceedingJoinPoint joinPoint) throws Throwable {

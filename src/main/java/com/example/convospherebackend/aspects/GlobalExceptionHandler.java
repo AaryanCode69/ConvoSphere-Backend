@@ -1,9 +1,11 @@
 package com.example.convospherebackend.aspects;
 
 import com.example.convospherebackend.exception.EmailAlreadyExistsException;
+import com.example.convospherebackend.exception.InvalidAuthenticationPrincipalException;
 import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -43,6 +45,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<ApiResponse<?>> ExceptionHandler(JwtException exception){
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(
+                        ApiResponse.error(
+                                ApiError.builder()
+                                        .code(HttpStatus.UNAUTHORIZED)
+                                        .message(exception.getMessage())
+                                        .build()
+                        )
+                );
+    }
+
+    @ExceptionHandler({AuthenticationException.class,InvalidAuthenticationPrincipalException.class})
+    public ResponseEntity<ApiResponse<?>> ExceptionHandler(RuntimeException exception){
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(
