@@ -2,6 +2,7 @@ package com.example.convospherebackend.services;
 
 import com.example.convospherebackend.dto.ConversationResponseDTO;
 import com.example.convospherebackend.dto.CreateConversationDTO;
+import com.example.convospherebackend.dto.GetConversationDTO;
 import com.example.convospherebackend.entities.Conversations;
 import com.example.convospherebackend.entities.Member;
 import com.example.convospherebackend.entities.User;
@@ -9,6 +10,11 @@ import com.example.convospherebackend.enums.GroupRoles;
 import com.example.convospherebackend.exception.InvalidAuthenticationPrincipalException;
 import com.example.convospherebackend.repository.ConversationRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,15 +27,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
+
 @Service
 @RequiredArgsConstructor
 public class ConversationService {
 
     private final ConversationRepository conversationRepository;
 
+    private final ModelMapper modelMapper;
+
     @Transactional
     public ConversationResponseDTO createConversation(CreateConversationDTO createConversationDTO) {
-        System.out.println("-----------------------------------------------------------------------------------------------");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Object principal = auth.getPrincipal();
 
@@ -78,4 +87,24 @@ public class ConversationService {
     }
 
 
+    public Page<GetConversationDTO> getAllUserConversations(int pgNumber,int size) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = auth.getPrincipal();
+
+        if (!(principal instanceof User creator)) {
+            throw new InvalidAuthenticationPrincipalException("Invalid authentication principal");
+        }
+
+        String userId = creator.getId();
+        Pageable pageable = PageRequest.of(pgNumber, size,Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+
+        Page<Conversations> conversations = conversationRepository.findByMembersUserId(userId,pageable);
+
+        return conversations.map(
+                conversation -> {
+                    return modelMapper.map(conversation, GetConversationDTO.class);
+                }
+        );
+    }
 }

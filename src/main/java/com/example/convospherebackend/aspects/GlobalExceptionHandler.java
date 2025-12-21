@@ -70,4 +70,18 @@ public class GlobalExceptionHandler {
                         )
                 );
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<?>> ExceptionHandler(Exception exception){
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(
+                        ApiResponse.error(
+                                ApiError.builder()
+                                        .code(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .message(exception.getMessage())
+                                        .build()
+                        )
+                );
+    }
 }
