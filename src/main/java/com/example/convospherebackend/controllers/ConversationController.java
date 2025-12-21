@@ -30,4 +30,9 @@ public class ConversationController {
         return conversationService.getAllUserConversations(page,size);
     }
 
+    @GetMapping("/{id}")
+    public GetConversationDTO getConversationById(@PathVariable String id){
+        return conversationService.getConversation(id);
+    }
+
 }

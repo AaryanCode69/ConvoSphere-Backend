@@ -8,6 +8,8 @@ import com.example.convospherebackend.entities.Member;
 import com.example.convospherebackend.entities.User;
 import com.example.convospherebackend.enums.GroupRoles;
 import com.example.convospherebackend.exception.InvalidAuthenticationPrincipalException;
+import com.example.convospherebackend.exception.InvalidConversationMemberException;
+import com.example.convospherebackend.exception.ResourceNotFoundException;
 import com.example.convospherebackend.repository.ConversationRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -106,5 +108,28 @@ public class ConversationService {
                     return modelMapper.map(conversation, GetConversationDTO.class);
                 }
         );
+    }
+
+    @Transactional(readOnly = true)
+    public GetConversationDTO getConversation(String id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = auth.getPrincipal();
+
+        if (!(principal instanceof User creator)) {
+            throw new InvalidAuthenticationPrincipalException("Invalid authentication principal");
+        }
+        String userId = creator.getId();
+
+        if (!conversationRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Conversation not found");
+        }
+
+        Conversations conversation =
+                conversationRepository.findByIdAndMembersUserId(id, userId)
+                        .orElseThrow(() ->
+                                new InvalidConversationMemberException("Not a member of this conversation")
+                        );
+
+        return modelMapper.map(conversation, GetConversationDTO.class);
     }
 }
