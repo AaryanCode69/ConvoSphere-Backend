@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(JwtException.class)
-    public ResponseEntity<ApiResponse<?>> ExceptionHandler(JwtException exception){
+    public ResponseEntity<ApiResponse<?>> handleJwtException(JwtException exception){
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(
@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({AuthenticationException.class,InvalidAuthenticationPrincipalException.class})
-    public ResponseEntity<ApiResponse<?>> ExceptionHandler(RuntimeException exception){
+    public ResponseEntity<ApiResponse<?>> handleAuthException(RuntimeException exception){
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(
@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> ExceptionHandler(Exception exception){
+    public ResponseEntity<ApiResponse<?>> handleGeneralException(Exception exception){
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<?>> ExceptionHandler(ResourceNotFoundException exception){
+    public ResponseEntity<ApiResponse<?>> handleResourceNotFound(ResourceNotFoundException exception){
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(
@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidConversationMemberException.class)
-    public ResponseEntity<ApiResponse<?>> ExceptionHandler(InvalidConversationMemberException exception){
+    public ResponseEntity<ApiResponse<?>> handleInvalidConversationMember(InvalidConversationMemberException exception){
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(
