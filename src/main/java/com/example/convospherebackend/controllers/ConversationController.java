@@ -17,9 +17,11 @@ public class ConversationController {
 
     private final ConversationService conversationService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ConversationResponseDTO createConversation(@Valid @RequestBody CreateConversationDTO createConversationDTO) {
-        return conversationService.createConversation(createConversationDTO);
+
+        ConversationResponseDTO conversationResponseDTO =  conversationService.createConversation(createConversationDTO);
+        return  conversationResponseDTO;
     }
 
 }

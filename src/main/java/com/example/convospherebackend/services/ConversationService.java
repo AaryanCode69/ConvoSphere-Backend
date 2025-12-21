@@ -29,7 +29,7 @@ public class ConversationService {
 
     @Transactional
     public ConversationResponseDTO createConversation(CreateConversationDTO createConversationDTO) {
-
+        System.out.println("-----------------------------------------------------------------------------------------------");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Object principal = auth.getPrincipal();
 

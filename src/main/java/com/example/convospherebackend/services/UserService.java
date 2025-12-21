@@ -14,7 +14,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User getUserById(String id){
-        return userRepository.getUserById(id);
+        return userRepository.findById(id).orElse(null);
     }
 
 

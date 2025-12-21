@@ -72,7 +72,7 @@ public class LoginandSignUpService {
     @Transactional
     public LoginResponseDTO userLogin(LoginDTO loginDTO){
         String email = loginDTO.getEmail().toLowerCase().trim();
-        User user = userRepository.getUserByEmail(email);
+        User user = userRepository.findByEmail(email);
         if(user==null){
             throw new EmailNotFoundException("Email Not Found, Please Login Using a Valid Email Address");
         }
