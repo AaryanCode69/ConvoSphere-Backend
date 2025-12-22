@@ -1,8 +1,6 @@
 package com.example.convospherebackend.controllers;
 
-import com.example.convospherebackend.dto.ConversationResponseDTO;
-import com.example.convospherebackend.dto.CreateConversationDTO;
-import com.example.convospherebackend.dto.GetConversationDTO;
+import com.example.convospherebackend.dto.*;
 import com.example.convospherebackend.services.ConversationService;
 import jakarta.validation.Valid;
 import lombok.Getter;
@@ -35,4 +33,8 @@ public class ConversationController {
         return conversationService.getConversation(id);
     }
 
+    @PostMapping("/{convId}/messages")
+    public MessageResponseDTO sendMessage(@PathVariable String convId, @Valid @RequestBody SendMessageDTO sendMessageDTO){
+        return conversationService.sendMessageToConv(convId,sendMessageDTO);
+    }
 }

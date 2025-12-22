@@ -1,16 +1,16 @@
 package com.example.convospherebackend.services;
 
-import com.example.convospherebackend.dto.ConversationResponseDTO;
-import com.example.convospherebackend.dto.CreateConversationDTO;
-import com.example.convospherebackend.dto.GetConversationDTO;
+import com.example.convospherebackend.dto.*;
 import com.example.convospherebackend.entities.Conversations;
 import com.example.convospherebackend.entities.Member;
+import com.example.convospherebackend.entities.Messages;
 import com.example.convospherebackend.entities.User;
 import com.example.convospherebackend.enums.GroupRoles;
 import com.example.convospherebackend.exception.InvalidAuthenticationPrincipalException;
 import com.example.convospherebackend.exception.InvalidConversationMemberException;
 import com.example.convospherebackend.exception.ResourceNotFoundException;
 import com.example.convospherebackend.repository.ConversationRepository;
+import com.example.convospherebackend.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -37,16 +37,15 @@ public class ConversationService {
 
     private final ConversationRepository conversationRepository;
 
+    private final MessageRepository messageRepository;
+
     private final ModelMapper modelMapper;
+
+    private final SecurityUtils securityUtils;
 
     @Transactional
     public ConversationResponseDTO createConversation(CreateConversationDTO createConversationDTO) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Object principal = auth.getPrincipal();
-
-        if (!(principal instanceof User creator)) {
-            throw new InvalidAuthenticationPrincipalException("Invalid authentication principal");
-        }
+        User creator = securityUtils.getCurrentUser();
 
         String creatorId = creator.getId();
 
@@ -90,12 +89,7 @@ public class ConversationService {
 
 
     public Page<GetConversationDTO> getAllUserConversations(int pgNumber,int size) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Object principal = auth.getPrincipal();
-
-        if (!(principal instanceof User creator)) {
-            throw new InvalidAuthenticationPrincipalException("Invalid authentication principal");
-        }
+        User creator = securityUtils.getCurrentUser();
 
         String userId = creator.getId();
         Pageable pageable = PageRequest.of(pgNumber, size,Sort.by(Sort.Direction.DESC, "updatedAt"));
@@ -112,12 +106,8 @@ public class ConversationService {
 
     @Transactional(readOnly = true)
     public GetConversationDTO getConversation(String id) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Object principal = auth.getPrincipal();
+        User creator = securityUtils.getCurrentUser();
 
-        if (!(principal instanceof User creator)) {
-            throw new InvalidAuthenticationPrincipalException("Invalid authentication principal");
-        }
         String userId = creator.getId();
 
         if (!conversationRepository.existsById(id)) {
@@ -131,5 +121,34 @@ public class ConversationService {
                         );
 
         return modelMapper.map(conversation, GetConversationDTO.class);
+    }
+
+    @Transactional
+    public MessageResponseDTO sendMessageToConv(String convId, SendMessageDTO sendMessageDTO) {
+        User creator = securityUtils.getCurrentUser();
+        String userId = creator.getId();
+
+        Conversations conversation =
+                conversationRepository.findByIdAndMembersUserId(convId, userId)
+                        .orElseThrow(() ->
+                                new InvalidConversationMemberException("Not a member of this conversation")
+                        );
+        Messages message = Messages.builder()
+                .content(sendMessageDTO.getContent())
+                .conversationId(conversation.getId())
+                .messageType(sendMessageDTO.getMessageType())
+                .mediaUrl(sendMessageDTO.getMediaUrl())
+                .senderId(userId)
+                .build();
+
+        message  = messageRepository.save(message);
+
+        return MessageResponseDTO.builder()
+                .id(message.getId())
+                .conversationId(message.getConversationId())
+                .createdAt(message.getCreatedAt())
+                .content(message.getContent())
+                .senderId(message.getSenderId())
+                .build();
     }
 }
