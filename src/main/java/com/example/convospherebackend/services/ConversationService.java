@@ -6,19 +6,17 @@ import com.example.convospherebackend.entities.Member;
 import com.example.convospherebackend.entities.Messages;
 import com.example.convospherebackend.entities.User;
 import com.example.convospherebackend.enums.GroupRoles;
-import com.example.convospherebackend.exception.InvalidAuthenticationPrincipalException;
 import com.example.convospherebackend.exception.InvalidConversationMemberException;
 import com.example.convospherebackend.exception.ResourceNotFoundException;
 import com.example.convospherebackend.repository.ConversationRepository;
 import com.example.convospherebackend.repository.MessageRepository;
+import com.example.convospherebackend.views.MessageView;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -151,4 +149,33 @@ public class ConversationService {
                 .senderId(message.getSenderId())
                 .build();
     }
+
+    public Page<GetMessageDTO> getMessageforConv(String convId,int page,int size) {
+        User creator = securityUtils.getCurrentUser();
+        String userId = creator.getId();
+        Conversations conversation =
+                conversationRepository.findByIdAndMembersUserId(convId, userId)
+                        .orElseThrow(() ->
+                                new InvalidConversationMemberException("Not a member of this conversation")
+                        );
+        size = Math.min(size, 50);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<MessageView> messages = messageRepository.findByConversationId(convId, pageable);
+
+        return messages.map(
+                message -> GetMessageDTO.builder()
+                        .id(message.getId())
+                        .content(message.getContent())
+                        .createdAt(message.getCreatedAt())
+                        .senderId(message.getSenderId())
+                        .mediaUrl(message.getMediaUrl())
+                        .messageType(message.getMessageType())
+                        .isDeleted(message.isDeleted())
+                        .editedAt(message.getEditedAt())
+                        .build()
+        );
+
+    }
+
 }

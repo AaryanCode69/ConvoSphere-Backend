@@ -37,4 +37,9 @@ public class ConversationController {
     public MessageResponseDTO sendMessage(@PathVariable String convId, @Valid @RequestBody SendMessageDTO sendMessageDTO){
         return conversationService.sendMessageToConv(convId,sendMessageDTO);
     }
+
+    @GetMapping("/{convId}/messages")
+    public Page<GetMessageDTO> getMessages(@PathVariable String convId,@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){
+        return conversationService.getMessageforConv(convId,page,size);
+    }
 }
