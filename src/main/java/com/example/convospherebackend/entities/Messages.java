@@ -38,4 +38,7 @@ public class Messages {
 
     @Builder.Default
     private boolean isDeleted = false;
+
+    @Builder.Default
+    private boolean isEdited = false;
 }

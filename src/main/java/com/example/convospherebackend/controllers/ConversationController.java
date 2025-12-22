@@ -42,4 +42,14 @@ public class ConversationController {
     public Page<GetMessageDTO> getMessages(@PathVariable String convId,@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){
         return conversationService.getMessageforConv(convId,page,size);
     }
+
+    @PatchMapping("/{convId}/messages/{messageId}")
+    public MessageEditResponseDTO editMessage(@PathVariable String convId,@PathVariable String messageId,@Valid @RequestBody EditMessageDTO editMessageDTO){
+        return conversationService.editMessage(convId,messageId,editMessageDTO);
+    }
+
+    @DeleteMapping("/{convId}/messages/{messageId}")
+    public DeleteMessageResponseDTO deleteMessage(@PathVariable String convId,@PathVariable String messageId){
+        return conversationService.deleteMessage(convId,messageId);
+    }
 }

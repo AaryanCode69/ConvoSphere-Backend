@@ -7,6 +7,7 @@ import com.example.convospherebackend.entities.Messages;
 import com.example.convospherebackend.entities.User;
 import com.example.convospherebackend.enums.GroupRoles;
 import com.example.convospherebackend.exception.InvalidConversationMemberException;
+import com.example.convospherebackend.exception.InvalidMessageOwnerException;
 import com.example.convospherebackend.exception.ResourceNotFoundException;
 import com.example.convospherebackend.repository.ConversationRepository;
 import com.example.convospherebackend.repository.MessageRepository;
@@ -173,9 +174,67 @@ public class ConversationService {
                         .messageType(message.getMessageType())
                         .isDeleted(message.isDeleted())
                         .editedAt(message.getEditedAt())
+                        .isEdited(message.isEdited())
                         .build()
         );
 
     }
 
+    @Transactional
+    public MessageEditResponseDTO editMessage(String convId, String messageId,EditMessageDTO editMessageDTO) {
+        User user = securityUtils.getCurrentUser();
+        String userId = user.getId();
+
+        Conversations conversation =
+                conversationRepository.findByIdAndMembersUserId(convId, userId)
+                        .orElseThrow(() ->
+                                new InvalidConversationMemberException("Not a member of this conversation")
+                        );
+        Messages messages = messageRepository.findByIdAndConversationId(messageId,convId)
+                .orElseThrow(()-> new ResourceNotFoundException("Message not found"));
+        if(!messages.getSenderId().equals(userId)){
+            throw new InvalidMessageOwnerException("User is not an Owner of this Message");
+        }
+        if(messages.isDeleted()){
+            throw new IllegalStateException("Cannot edit a deleted message");
+        }
+        messages.setContent(editMessageDTO.getContent());
+        messages.setEditedAt(Instant.now());
+        messages.setEdited(true);
+        messageRepository.save(messages);
+
+        return MessageEditResponseDTO.builder()
+                .id(messages.getId())
+                .editedAt(messages.getEditedAt())
+                .content(messages.getContent())
+                .build();
+
+    }
+
+    @Transactional
+    public DeleteMessageResponseDTO deleteMessage(String convId, String messageId) {
+        User user = securityUtils.getCurrentUser();
+        String userId = user.getId();
+
+        Conversations conversation =
+                conversationRepository.findByIdAndMembersUserId(convId, userId)
+                        .orElseThrow(() ->
+                                new InvalidConversationMemberException("Not a member of this conversation")
+                        );
+        Messages messages = messageRepository.findByIdAndConversationId(messageId,convId)
+                .orElseThrow(()-> new ResourceNotFoundException("Message not found"));
+        if(!messages.getSenderId().equals(userId)){
+            throw new InvalidMessageOwnerException("User is not an Owner of this Message");
+        }
+        if(messages.isDeleted()){
+            throw new IllegalStateException("Cannot delete a deleted message");
+        }
+
+        messages.setDeleted(true);
+        messageRepository.save(messages);
+        return DeleteMessageResponseDTO.builder()
+                .deleted(true)
+                .messageId(messageId)
+                .build();
+    }
 }

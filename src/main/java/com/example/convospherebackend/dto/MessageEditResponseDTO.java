@@ -1,25 +1,19 @@
 package com.example.convospherebackend.dto;
 
-import com.example.convospherebackend.enums.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
 @Builder
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class GetMessageDTO {
-
+public class MessageEditResponseDTO {
     private String id;
-    private String senderId;
     private String content;
-    private MessageType messageType;
-    private String mediaUrl;
-    private Instant createdAt;
-    private boolean isDeleted;
     private Instant editedAt;
-    private boolean isEdited;
-
 }
+

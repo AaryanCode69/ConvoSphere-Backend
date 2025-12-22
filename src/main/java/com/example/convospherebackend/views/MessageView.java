@@ -13,4 +13,5 @@ public interface MessageView {
     Instant getCreatedAt();
     boolean isDeleted();
     Instant getEditedAt();
+    boolean isEdited();
 }

@@ -1,9 +1,6 @@
 package com.example.convospherebackend.aspects;
 
-import com.example.convospherebackend.exception.EmailAlreadyExistsException;
-import com.example.convospherebackend.exception.InvalidAuthenticationPrincipalException;
-import com.example.convospherebackend.exception.InvalidConversationMemberException;
-import com.example.convospherebackend.exception.ResourceNotFoundException;
+import com.example.convospherebackend.exception.*;
 import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -103,6 +100,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidConversationMemberException.class)
     public ResponseEntity<ApiResponse<?>> handleInvalidConversationMember(InvalidConversationMemberException exception){
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(
+                        ApiResponse.error(
+                                ApiError.builder()
+                                        .code(HttpStatus.FORBIDDEN)
+                                        .message(exception.getMessage())
+                                        .build()
+                        )
+                );
+    }
+
+    @ExceptionHandler(InvalidMessageOwnerException.class)
+    public ResponseEntity<ApiResponse<?>> handleInvalidMessageOwner(InvalidMessageOwnerException exception){
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(
