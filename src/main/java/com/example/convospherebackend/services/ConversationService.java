@@ -9,9 +9,10 @@ import com.example.convospherebackend.enums.GroupRoles;
 import com.example.convospherebackend.exception.InvalidConversationMemberException;
 import com.example.convospherebackend.exception.InvalidMessageOwnerException;
 import com.example.convospherebackend.exception.ResourceNotFoundException;
+import com.example.convospherebackend.projections.UnreadCountProjection;
 import com.example.convospherebackend.repository.ConversationRepository;
 import com.example.convospherebackend.repository.MessageRepository;
-import com.example.convospherebackend.views.MessageView;
+import com.example.convospherebackend.projections.MessageProjection;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -23,11 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -86,7 +84,7 @@ public class ConversationService {
 
     }
 
-
+    @Transactional(readOnly = true)
     public Page<GetConversationDTO> getAllUserConversations(int pgNumber,int size) {
         User creator = securityUtils.getCurrentUser();
 
@@ -96,11 +94,59 @@ public class ConversationService {
 
         Page<Conversations> conversations = conversationRepository.findByMembersUserId(userId,pageable);
 
-        return conversations.map(
-                conversation -> {
-                    return modelMapper.map(conversation, GetConversationDTO.class);
+        List<String> conversationIds = conversations.stream()
+                .map(Conversations::getId)
+                .toList();
+        Map<String, Instant> lastReadMap = new HashMap<>();
+
+        for (Conversations c : conversations) {
+            for (Member m : c.getMembers()) {
+                if (m.getUserId().equals(userId)) {
+                    lastReadMap.put(c.getId(), m.getLastReadAt());
+                    break;
                 }
-        );
+            }
+        }
+
+        List<UnreadCountProjection> unreadCounts =
+                messageRepository.countUnreadByConversationIds(
+                        conversationIds,
+                        Instant.EPOCH
+                );
+
+        Map<String, Long> unreadCountMap = unreadCounts.stream()
+                .collect(Collectors.toMap(
+                        UnreadCountProjection::getConversationId,
+                        UnreadCountProjection::getCount
+                ));
+
+        return conversations.map(conversation -> {
+
+            Instant lastReadAt = lastReadMap.get(conversation.getId());
+
+            long totalUnread = unreadCountMap.getOrDefault(
+                    conversation.getId(),
+                    0L
+            );
+
+
+            if (lastReadAt != null) {
+                long readCount = messageRepository.countByConversationIdAndCreatedAtBeforeAndIsDeletedFalse(
+                        conversation.getId(),
+                        lastReadAt
+                );
+                totalUnread = Math.max(totalUnread - readCount, 0);
+            }
+
+            return GetConversationDTO.builder()
+                    .id(conversation.getId())
+                    .title(conversation.getTitle())
+                    .type(conversation.getType())
+                    .createdAt(conversation.getCreatedAt())
+                    .isArchived(conversation.isArchived())
+                    .unreadCount(totalUnread)
+                    .build();
+        });
     }
 
     @Transactional(readOnly = true)
@@ -109,17 +155,38 @@ public class ConversationService {
 
         String userId = creator.getId();
 
-        if (!conversationRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Conversation not found");
-        }
-
         Conversations conversation =
                 conversationRepository.findByIdAndMembersUserId(id, userId)
                         .orElseThrow(() ->
                                 new InvalidConversationMemberException("Not a member of this conversation")
                         );
+        Member currMember = null;
+        for(Member member : conversation.getMembers()){
+            if(member.getUserId().equals(userId)){
+                currMember = member;
+                break;
+            }
+        }
+        if (currMember == null) {
+            throw new InvalidConversationMemberException("Member state not found");
+        }
 
-        return modelMapper.map(conversation, GetConversationDTO.class);
+        Instant lastReadAt = currMember.getLastReadAt();
+
+        long unreadCount = (lastReadAt == null)
+                ? messageRepository.countByConversationIdAndIsDeletedFalse(conversation.getId())
+                : messageRepository.countByConversationIdAndCreatedAtAfterAndIsDeletedFalse(
+                conversation.getId(), lastReadAt
+        );
+
+        return GetConversationDTO.builder()
+                .id(conversation.getId())
+                .title(conversation.getTitle())
+                .type(conversation.getType())
+                .createdAt(conversation.getCreatedAt())
+                .isArchived(conversation.isArchived())
+                .unreadCount(unreadCount)
+                .build();
     }
 
     @Transactional
@@ -162,7 +229,7 @@ public class ConversationService {
         size = Math.min(size, 50);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Page<MessageView> messages = messageRepository.findByConversationId(convId, pageable);
+        Page<MessageProjection> messages = messageRepository.findByConversationId(convId, pageable);
 
         return messages.map(
                 message -> GetMessageDTO.builder()
@@ -236,5 +303,26 @@ public class ConversationService {
                 .deleted(true)
                 .messageId(messageId)
                 .build();
+    }
+
+    @Transactional
+    public void readMessage(String convId) {
+        User user = securityUtils.getCurrentUser();
+        String userId = user.getId();
+
+        Conversations conversation =
+                conversationRepository.findByIdAndMembersUserId(convId, userId)
+                        .orElseThrow(() ->
+                                new InvalidConversationMemberException("Not a member of this conversation")
+                        );
+        for(Member member : conversation.getMembers()){
+            if(member.getUserId().equals(userId) ){
+                if(member.getLastReadAt()==null || member.getLastReadAt().isBefore(Instant.now())) {
+                    member.setLastReadAt(Instant.now());
+                    break;
+                }
+            }
+        }
+        conversationRepository.save(conversation);
     }
 }

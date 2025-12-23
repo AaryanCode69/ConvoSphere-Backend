@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,5 +53,11 @@ public class ConversationController {
     @DeleteMapping("/{convId}/messages/{messageId}")
     public DeleteMessageResponseDTO deleteMessage(@PathVariable String convId,@PathVariable String messageId){
         return conversationService.deleteMessage(convId,messageId);
+    }
+
+    @PostMapping("/{convId}/read")
+    public ResponseEntity<?> readMessage(@PathVariable String convId){
+        conversationService.readMessage(convId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

@@ -1,10 +1,10 @@
-package com.example.convospherebackend.views;
+package com.example.convospherebackend.projections;
 
 import com.example.convospherebackend.enums.MessageType;
 
 import java.time.Instant;
 
-public interface MessageView {
+public interface MessageProjection {
     String getId();
     String getSenderId();
     String getContent();

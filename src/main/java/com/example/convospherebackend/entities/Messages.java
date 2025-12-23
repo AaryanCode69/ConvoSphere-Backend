@@ -15,7 +15,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@CompoundIndex(name = "conv_createdAt_idx",def = "{'conversationId' : 1,'createdAt' : -1}")
+@CompoundIndex(name = "conv_createdAt_idx",def = "{'conversationId' : 1,'createdAt' : -1,'isDeleted': 1}")
 public class Messages {
     @Id
     private String id;
