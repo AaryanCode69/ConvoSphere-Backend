@@ -1,6 +1,9 @@
 package com.example.convospherebackend.services;
 
-import com.example.convospherebackend.dto.*;
+import com.example.convospherebackend.dto.request.CreateConversationDTO;
+import com.example.convospherebackend.dto.request.EditMessageDTO;
+import com.example.convospherebackend.dto.request.SendMessageDTO;
+import com.example.convospherebackend.dto.response.*;
 import com.example.convospherebackend.entities.Conversations;
 import com.example.convospherebackend.entities.Member;
 import com.example.convospherebackend.entities.Messages;
@@ -218,7 +221,7 @@ public class ConversationService {
                 .build();
     }
 
-    public Page<GetMessageDTO> getMessageforConv(String convId,int page,int size) {
+    public Page<GetMessageDTO> getMessageforConv(String convId, int page, int size) {
         User creator = securityUtils.getCurrentUser();
         String userId = creator.getId();
         Conversations conversation =
@@ -248,7 +251,7 @@ public class ConversationService {
     }
 
     @Transactional
-    public MessageEditResponseDTO editMessage(String convId, String messageId,EditMessageDTO editMessageDTO) {
+    public MessageEditResponseDTO editMessage(String convId, String messageId, EditMessageDTO editMessageDTO) {
         User user = securityUtils.getCurrentUser();
         String userId = user.getId();
 

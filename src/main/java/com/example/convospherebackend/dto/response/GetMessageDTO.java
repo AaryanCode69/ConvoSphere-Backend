@@ -1,4 +1,4 @@
-package com.example.convospherebackend.dto;
+package com.example.convospherebackend.dto.response;
 
 import com.example.convospherebackend.enums.MessageType;
 import lombok.AllArgsConstructor;

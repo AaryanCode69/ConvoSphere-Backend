@@ -1,9 +1,8 @@
-package com.example.convospherebackend.dto;
+package com.example.convospherebackend.dto.request;
 
 
 import com.example.convospherebackend.enums.MessageType;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 

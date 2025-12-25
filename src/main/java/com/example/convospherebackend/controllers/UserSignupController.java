@@ -1,8 +1,8 @@
 package com.example.convospherebackend.controllers;
 
-import com.example.convospherebackend.dto.LoginDTO;
-import com.example.convospherebackend.dto.LoginResponseDTO;
-import com.example.convospherebackend.dto.SignUpDTO;
+import com.example.convospherebackend.dto.request.LoginDTO;
+import com.example.convospherebackend.dto.response.LoginResponseDTO;
+import com.example.convospherebackend.dto.request.SignUpDTO;
 import com.example.convospherebackend.services.LoginandSignUpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

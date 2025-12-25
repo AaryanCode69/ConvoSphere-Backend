@@ -1,4 +1,4 @@
-package com.example.convospherebackend.dto;
+package com.example.convospherebackend.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

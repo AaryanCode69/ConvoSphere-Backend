@@ -1,4 +1,4 @@
-package com.example.convospherebackend.dto;
+package com.example.convospherebackend.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

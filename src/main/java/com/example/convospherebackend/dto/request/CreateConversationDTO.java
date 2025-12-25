@@ -1,4 +1,4 @@
-package com.example.convospherebackend.dto;
+package com.example.convospherebackend.dto.request;
 
 import com.example.convospherebackend.enums.ConversationType;
 import jakarta.validation.constraints.NotBlank;

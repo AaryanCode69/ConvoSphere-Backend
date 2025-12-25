@@ -1,9 +1,9 @@
 package com.example.convospherebackend.services;
 
 
-import com.example.convospherebackend.dto.LoginDTO;
-import com.example.convospherebackend.dto.LoginResponseDTO;
-import com.example.convospherebackend.dto.SignUpDTO;
+import com.example.convospherebackend.dto.request.LoginDTO;
+import com.example.convospherebackend.dto.response.LoginResponseDTO;
+import com.example.convospherebackend.dto.request.SignUpDTO;
 import com.example.convospherebackend.entities.User;
 import com.example.convospherebackend.entities.UserAuthProvider;
 import com.example.convospherebackend.enums.LoginAuthProvider;
