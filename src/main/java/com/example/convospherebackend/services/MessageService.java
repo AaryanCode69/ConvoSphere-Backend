@@ -10,6 +10,7 @@ import com.example.convospherebackend.entities.Conversations;
 import com.example.convospherebackend.entities.Member;
 import com.example.convospherebackend.entities.Messages;
 import com.example.convospherebackend.entities.User;
+import com.example.convospherebackend.events.MessageReadEvent;
 import com.example.convospherebackend.events.MessageSentEvent;
 import com.example.convospherebackend.exception.InvalidConversationMemberException;
 import com.example.convospherebackend.exception.InvalidMessageOwnerException;
@@ -83,6 +84,7 @@ public class MessageService {
 
     }
 
+    @Transactional(readOnly = true)
     public Page<GetMessageDTO> getMessageforConv(String convId, int page, int size) {
 
         String userId = checkValidUser(convId);
@@ -166,15 +168,19 @@ public class MessageService {
                         .orElseThrow(() ->
                                 new InvalidConversationMemberException("Not a member of this conversation")
                         );
+        Instant lastReadAt = Instant.now();
         for(Member member : conversation.getMembers()){
             if(member.getUserId().equals(userId) ){
                 if(member.getLastReadAt()==null || member.getLastReadAt().isBefore(Instant.now())) {
-                    member.setLastReadAt(Instant.now());
+                    member.setLastReadAt(lastReadAt);
                     break;
                 }
             }
         }
         conversationRepository.save(conversation);
+
+        applicationEventPublisher.publishEvent(new MessageReadEvent(convId, userId, lastReadAt));
+
     }
 
 }

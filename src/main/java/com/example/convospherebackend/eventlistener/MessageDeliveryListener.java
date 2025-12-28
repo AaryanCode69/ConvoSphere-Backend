@@ -1,6 +1,8 @@
 package com.example.convospherebackend.eventlistener;
 
 import com.example.convospherebackend.dto.websocket.MessageWebSocketDTO;
+import com.example.convospherebackend.dto.websocket.ReadReceiptWebSocketDTO;
+import com.example.convospherebackend.events.MessageReadEvent;
 import com.example.convospherebackend.events.MessageSentEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,21 @@ public class MessageDeliveryListener {
             log.error(e.getMessage());
         }
 
+    }
+
+    @Async("websocketExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onMessageRead(MessageReadEvent event) {
+        try{
+            messagingTemplate.convertAndSend("/topic/conversation/"+event.conversationId()+"/read", ReadReceiptWebSocketDTO
+            .builder()
+                    .conversationId(event.conversationId())
+                    .userId(event.userId())
+                    .lastReadAt(event.lastReadAt())
+                    .build());
+        }catch (Exception e) {
+            log.error("Failed to broadcast read receipt", e);
+        }
     }
 
 }
