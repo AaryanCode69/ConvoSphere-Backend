@@ -10,6 +10,7 @@ import com.example.convospherebackend.entities.Conversations;
 import com.example.convospherebackend.entities.Member;
 import com.example.convospherebackend.entities.Messages;
 import com.example.convospherebackend.entities.User;
+import com.example.convospherebackend.events.MessageSentEvent;
 import com.example.convospherebackend.exception.InvalidConversationMemberException;
 import com.example.convospherebackend.exception.InvalidMessageOwnerException;
 import com.example.convospherebackend.exception.ResourceNotFoundException;
@@ -17,6 +18,7 @@ import com.example.convospherebackend.projections.MessageProjection;
 import com.example.convospherebackend.repository.ConversationRepository;
 import com.example.convospherebackend.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
 
     private final ConversationRepository conversationRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private String checkValidUser(String convId){
         User user = securityUtils.getCurrentUser();
@@ -63,6 +66,13 @@ public class MessageService {
 
         message  = messageRepository.save(message);
 
+        applicationEventPublisher.publishEvent(new MessageSentEvent(message.getId(),
+                message.getConversationId(),
+                message.getSenderId(),
+                message.getContent(),
+                message.getCreatedAt()
+        ));
+
         return MessageResponseDTO.builder()
                 .id(message.getId())
                 .conversationId(message.getConversationId())
@@ -70,6 +80,7 @@ public class MessageService {
                 .content(message.getContent())
                 .senderId(message.getSenderId())
                 .build();
+
     }
 
     public Page<GetMessageDTO> getMessageforConv(String convId, int page, int size) {
