@@ -34,30 +34,4 @@ public class ConversationController {
     public GetConversationDTO getConversationById(@PathVariable String id){
         return conversationService.getConversation(id);
     }
-
-    @PostMapping("/{convId}/messages")
-    public MessageResponseDTO sendMessage(@PathVariable String convId, @Valid @RequestBody SendMessageDTO sendMessageDTO){
-        return conversationService.sendMessageToConv(convId,sendMessageDTO);
-    }
-
-    @GetMapping("/{convId}/messages")
-    public Page<GetMessageDTO> getMessages(@PathVariable String convId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){
-        return conversationService.getMessageforConv(convId,page,size);
-    }
-
-    @PatchMapping("/{convId}/messages/{messageId}")
-    public MessageEditResponseDTO editMessage(@PathVariable String convId, @PathVariable String messageId, @Valid @RequestBody EditMessageDTO editMessageDTO){
-        return conversationService.editMessage(convId,messageId,editMessageDTO);
-    }
-
-    @DeleteMapping("/{convId}/messages/{messageId}")
-    public DeleteMessageResponseDTO deleteMessage(@PathVariable String convId, @PathVariable String messageId){
-        return conversationService.deleteMessage(convId,messageId);
-    }
-
-    @PostMapping("/{convId}/read")
-    public ResponseEntity<?> readMessage(@PathVariable String convId){
-        conversationService.readMessage(convId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
 }
